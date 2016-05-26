@@ -1,0 +1,30 @@
+version: '2'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command: -config.file=/etc/prometheus/prometheus.yml -storage.local.memory-chunks=10000
+    links:
+      - prometheusElasticsearch
+  prometheusElasticsearch:
+    image: erezny/elasticsearch_exporter:latest
+    environment:
+      - URI=http://elasticsearch:9200
+      - ALL=false
+      - TIMEOUT=1s
+      - LISTENADDRESS=0.0.0.0:9100
+      - LISTENPATH=/metrics
+    links:
+      - elasticsearch
+    ports:
+      - "9100:9100"
+    expose:
+      - "9100"
+  elasticsearch:
+    image: elasticsearch:2.3
+    expose:
+      - "9200"
